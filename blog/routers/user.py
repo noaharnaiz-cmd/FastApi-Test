@@ -12,8 +12,17 @@ router = APIRouter(prefix="/user", tags =["Users"])
 get_db = database.get_db
 
 @router.post("/", response_model=schemas.ShowUser)
-def create_user(request: schemas.User, db: Session = Depends(database.get_db)):
-    return userRepository.create(request, db)
+def create_user(request: schemas.User, db: Session = Depends(get_db)):
+    new_user = models.User(
+        name=request.name,
+        email=request.email,
+        password=Hash.bcrypt(request.password)  # <- ESTO
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
 
 
 @router.get("/{id}", response_model=schemas.ShowUser)
